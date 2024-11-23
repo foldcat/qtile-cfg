@@ -3,6 +3,7 @@
 qtile config for Xorg, with DWM styled keybinds and layout
 
 this config depends on 
+- alacritty
 - xset 
 - gnome polkit agent 
 - dunst
