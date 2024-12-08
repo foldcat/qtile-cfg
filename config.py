@@ -8,10 +8,11 @@ terminal = "alacritty"
 
 @hook.subscribe.startup_once
 def autostart_once():
-    subprocess.run(["xset", "r", "rate", "300", "25"])
-    subprocess.run(["xset", "s", "off"])
-    subprocess.run(["xset", "s", "noblank"])
-    subprocess.run(["xset", "-dpms"])
+    if qtile.core.name == "x11":
+        subprocess.run(["xset", "r", "rate", "300", "25"])
+        subprocess.run(["xset", "s", "off"])
+        subprocess.run(["xset", "s", "noblank"])
+        subprocess.run(["xset", "-dpms"])
     subprocess.run(["dbus-update-activation-environment", "DISPLAY"])
     subprocess.Popen(["/usr/libexec/polkit-gnome-authentication-agent-1"])
     subprocess.Popen(["dunst"])
@@ -100,30 +101,36 @@ widget_defaults = dict(
 
 extension_defaults = widget_defaults.copy()
 
+widgets = [
+    widget.GroupBox(this_current_screen_border="#33b1ff"),
+    widget.TextBox(fmt="|", foreground="404040"),
+    widget.CurrentLayout(foreground="808080"),
+    widget.TextBox(fmt="|", foreground="404040"),
+    widget.Prompt(),
+    widget.WindowName(),
+    widget.Chord(
+        chords_colors={
+            "launch": ("#ff0000", "#ffffff"),
+        },
+        name_transform=lambda name: name.upper(),
+    ),
+    widget.Net(format="[NET {down:.0f}{down_suffix} ↓↑ {up:.0f}{up_suffix}]"),
+    widget.PulseVolume(unmute_format="[VOL {volume}%]", mute_format="[VOL MUTE]"),
+    widget.CPU(format="[CPU {load_percent}%]"),
+    widget.Memory(format="[MEM {MemPercent}%]"),
+    widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
+]
+
+if qtile.core.name == "x11":
+    widgets.append(widget.Systray())
+elif qtile.core.name == "wayland":
+    widgets.append(widget.StatusNotifier())
+
 screens = [
     Screen(
         bottom=bar.Bar(
-            [
-                widget.GroupBox(this_current_screen_border="#33b1ff"),
-                widget.TextBox(fmt="|", foreground="404040"),
-                widget.CurrentLayout(foreground="808080"),
-                widget.TextBox(fmt="|", foreground="404040"),
-                widget.Prompt(),
-                widget.WindowName(),
-                widget.Chord(
-                    chords_colors={
-                        "launch": ("#ff0000", "#ffffff"),
-                    },
-                    name_transform=lambda name: name.upper(),
-                ),
-                widget.Net(format="[NET {down:.0f}{down_suffix} ↓↑ {up:.0f}{up_suffix}]"),
-                widget.PulseVolume(unmute_format="[VOL {volume}%]", mute_format="[VOL MUTE]"),
-                widget.CPU(format="[CPU {load_percent}%]"),
-                widget.Memory(format="[MEM {MemPercent}%]"),
-                widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
-                widget.Systray(),
-            ],
-            24,
+            widgets,
+      24,
         ),
     ),
 ]
